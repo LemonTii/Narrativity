@@ -1,2 +1,4 @@
 venv/
 src/training/__pycache__/
+src/training/data/
+src/models/
