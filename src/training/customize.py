@@ -19,21 +19,22 @@ class CustomLoss(nn.Module):
     
 class StoryDataset(Dataset):
     def __init__(self, stories, tokenizer, max_length):
-        self.input_ids = []
-        self.attn_masks = []
-        self.labels = []
-
-        for story in stories:
-            encodings_dict = tokenizer('<|startoftext|>'+ story['input'] + '<|endoftext|>', '<|startoftext|>' + story['target'] + '<|endoftext|>', truncation=True, max_length=max_length, padding="max_length")
-            self.input_ids.append(torch.tensor(encodings_dict['input_ids']))
-            self.attn_masks.append(torch.tensor(encodings_dict['attention_mask']))
-            self.labels.append(torch.tensor(encodings_dict['input_ids']))
+        self.stories = stories
+        self.tokenizer = tokenizer
+        self.max_length = max_length
 
     def __len__(self):
-        return len(self.input_ids)
+        return len(self.stories)
 
     def __getitem__(self, idx):
-        return self.input_ids[idx], self.attn_masks[idx], self.labels[idx]
+        story = self.stories[idx]
+        input_encodings = self.tokenizer(story['input'], truncation=True, max_length=self.max_length, padding="max_length", return_tensors="pt")
+        target_encodings = self.tokenizer(story['target'], truncation=True, max_length=self.max_length, padding="max_length", return_tensors="pt")
+        
+        input_ids = input_encodings['input_ids'].squeeze()  # Remove batch dimension
+        attn_masks = input_encodings['attention_mask'].squeeze()
+        labels = target_encodings['input_ids'].squeeze()
+        return input_ids, attn_masks, labels
 
 # Define the transformer-based model
 class StoryGenerator(torch.nn.Module):

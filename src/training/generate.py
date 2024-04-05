@@ -1,28 +1,34 @@
-'''
-This file is to use the model
-'''
-
 import torch
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
-from customize import StoryGenerator
+from customize import StoryGenerator  # Assuming this imports your custom class
+import os
 
-prompt = 'Once upon a time, there was a man'
-model_path = None
+prompt = "There was a happy couple"
+model_path = os.path.join('..', 'models', 'fold_2_epoch_5.pth')
 
 # Initialize tokenizer
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-model = GPT2LMHeadModel.from_pretrained('gpt2')
-if model_path is not None:
-        model.load_state_dict(torch.load(model_path))
+
+# Initialize and load the StoryGenerator model
+# Assuming the StoryGenerator wraps a GPT2LMHeadModel
+pretrained_model = GPT2LMHeadModel.from_pretrained('gpt2')
+model = StoryGenerator(pretrained_model)
+model.load_state_dict(torch.load(model_path))
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
+model.eval()  # Set the model to evaluation mode
 
-model.eval()
+# Prepare the prompt
+input_ids = tokenizer(prompt, return_tensors='pt').input_ids.to(device)
 
-input_ids = tokenizer.encode(prompt, return_tensors='pt').to(device)
+# Generating text
+# Assuming you need to call the generate method on the underlying transformer model
+output_sequences = model.transformer.generate(
+    input_ids=input_ids,
+    max_length=200,  # Example max_length
+    # Add other generation parameters as necessary
+)
 
-output_sequence = model.generate(input_ids, max_length=50, num_return_sequences=1)
-decoded_output = tokenizer.decode(torch.reshape(output_sequence, (-1,)), skip_special_tokens=True)
-
+decoded_output = tokenizer.decode(output_sequences[0], skip_special_tokens=True)
 print(decoded_output)
