@@ -1,4 +1,7 @@
 import os
+import re
+import nltk
+from nltk.tokenize import sent_tokenize
 
 def clean_text(text):
     """
@@ -8,18 +11,22 @@ def clean_text(text):
     text = text.replace('<nl>', '\n')
     # Remove <sos> and <eos> markers if present
     text = text.replace('<sos>', '').replace('<eos>', '')
+    text = ' '.join(word for word in text.split() if re.match("^[a-zA-Z0-9.,!?;:'\"-]+$", word))
     return text.strip()
 
-def split_story(story):
-    split_index = len(story) // 4
-    # Ensure the split happens at the end of a sentence where possible
-    while split_index < len(story) and story[split_index] not in ".!?":
-        split_index += 1
-    # Adjust split_index to include the punctuation mark
-    split_index += 1
-    return story[:split_index].strip(), story[split_index:].strip()
+def split_story(story, ratio=0.25):
+    sentences = sent_tokenize(story)
+    split_index = int(len(sentences) * ratio)
+    
+    # Ensure at least one sentence is in the input part and one in the target part
+    split_index = max(1, min(len(sentences) - 1, split_index))
+    
+    input_text = ' '.join(sentences[:split_index]).strip()
+    target_text = ' '.join(sentences[split_index:]).strip()
+    return input_text, target_text
 
 def preprocess_file(file_path):
+    nltk.download('punkt')
     data = []
 
     try:

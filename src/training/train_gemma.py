@@ -1,17 +1,25 @@
 import os
 import torch
+import time
 import torch.optim as optim
+import numpy as np
+import transformers
 from torch.utils.data import DataLoader
 from transformers import GPT2LMHeadModel, GPT2Tokenizer, AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from customize import StoryDataset, StoryGenerator, custom_collate  # Make sure these are defined in your `customize.py`
 from data_process import parallel_process_file  # Make sure this is defined
 from preprocess_data import preprocess_file
 from torch.cuda.amp import GradScaler, autocast
-import time
 from sklearn.model_selection import KFold
-import numpy as np
+from trl import SFTTrainer
+from peft import LoraConfig
+from dotenv import load_dotenv
 
 scaler = GradScaler()
+
+def formatting_func(example):
+    text = f"input: {example['input']}\ntarget: {example['target']}"
+    return [text]
 
 def train(model, dataloader, optimizer, device):
     model.train()
@@ -51,22 +59,32 @@ def validate(model, dataloader, device):
     return total_loss / len(dataloader)
 
 if __name__ == "__main__":
+    load_dotenv()
+    os.environ["HF_TOKEN"] = os.getenv('TOKEN')
     # stories 1
     # data_path = os.path.join("data", "stories", "train.csv")
     # val_data_path = os.path.join("data", "stories", "validation.csv")
 
     save_path = os.path.join("..", "models")
     os.makedirs(save_path, exist_ok=True)  # Ensure save directory exists
-
     data_path = os.path.join("data", "stories3", "data.txt")
     stories = preprocess_file(data_path)
 
-    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-    tokenizer.padding_side = "left"
-    tokenizer.pad_token = tokenizer.eos_token
-
+    model_id = "google/gemma-2b"
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16
+    )
+    lora_config = LoraConfig(
+        r = 8,
+        target_modules = ["q_proj", "o_proj", "k_proj", "v_proj",
+                        "gate_proj", "up_proj", "down_proj"],
+        task_type = "CAUSAL_LM",
+    )
+    tokenizer = AutoTokenizer.from_pretrained(model_id, token=os.environ['HF_TOKEN'])
     # tokenizer = AutoTokenizer.from_pretrained('gpt2')
-    # tokenizer.padding_side = "left"
+    tokenizer.padding_side = "right"
     # tokenizer.pad_token = tokenizer.eos_token
 
     # model = StoryGenerator(GPT2LMHeadModel.from_pretrained('gpt2'))
@@ -130,22 +148,40 @@ if __name__ == "__main__":
         val_dataset = StoryDataset(val_stories, tokenizer, max_length=max_length)
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=4, collate_fn=custom_collate)
         val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=4, collate_fn=custom_collate)
-
+        print(train_dataset)
         # Reset model and optimizer for each fold
-        model = StoryGenerator(GPT2LMHeadModel.from_pretrained('gpt2')).to(device)
-        # model = StoryGenerator(AutoModelForCausalLM.from_pretrained('gpt2',
-        #                                                             quantization_config=bnb_config,
-        #                                                             device_map={"":0})).to(device)
+        model = AutoModelForCausalLM.from_pretrained(model_id,
+                                                quantization_config=bnb_config,
+                                                device_map={"":0},
+                                                token=os.environ['HF_TOKEN'])
         optimizer = optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
+        trainer = SFTTrainer(
+            model=model,
+            train_dataset=train_dataset,
+            args=transformers.TrainingArguments(
+                per_device_train_batch_size=1,
+                gradient_accumulation_steps=4,
+                warmup_steps=2,
+                max_steps=100,
+                learning_rate=2e-4,
+                fp16=True,
+                logging_steps=1,
+                output_dir="outputs",
+                optim="paged_adamw_8bit"
+            ),
+            peft_config=lora_config,
+            formatting_func=formatting_func
+        )
+        trainer.train()
         
         # Your existing training and validation loop here
-        for e in range(epoch):
-            print(f'fold: {fold+1}, epoch: {e+1}')
-            # Train and validate the model
-            train_loss = train(model, train_dataloader, optimizer, device)
-            val_loss = validate(model, val_dataloader, device)
-            print(f'Fold {fold+1}, Epoch {e+1}, Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}')
+        # for e in range(epoch):
+        #     print(f'fold: {fold+1}, epoch: {e+1}')
+        #     # Train and validate the model
+        #     # train_loss = train(model, train_dataloader, optimizer, device)
+        #     # val_loss = validate(model, val_dataloader, device)
+        #     print(f'Fold {fold+1}, Epoch {e+1}, Training Loss: N/A, Validation Loss: N/A')
 
-            epoch_save_path = os.path.join(save_path, f'fold_{fold+1}_epoch_{e+1}.pth')
-            torch.save(model.state_dict(), epoch_save_path)
-            print(f'Model saved to {epoch_save_path}')
+        #     epoch_save_path = os.path.join(save_path, f'fold_{fold+1}_epoch_{e+1}.pth')
+        #     torch.save(model.state_dict(), epoch_save_path)
+        #     print(f'Model saved to {epoch_save_path}')
