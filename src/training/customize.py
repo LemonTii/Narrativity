@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data.dataloader import default_collate
+from transformers import SFTTrainer
 
 def custom_collate(batch):
     # Separate input_ids, attention_masks, and labels
@@ -60,3 +61,31 @@ class StoryGenerator(torch.nn.Module):
     def forward(self, input_ids, attention_mask=None, labels=None):
         outputs = self.transformer(input_ids, attention_mask=attention_mask, labels=labels)
         return outputs
+    
+class MyCustomSFTTrainer(SFTTrainer):
+    def __init__(self, *args, neural_loss_model=None, loss_weight=0.5, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.neural_loss_model = neural_loss_model
+        self.loss_weight = loss_weight  # Weight for the neural network-based loss
+        
+    def compute_loss(self, model, inputs, return_outputs=False):
+        outputs = model(**inputs)
+        logits = outputs.logits  # Adjust based on your model outputs
+
+        # Compute the default model loss
+        if "labels" in inputs:
+            labels = inputs["labels"]
+            # Use model's built-in loss
+            loss_default = outputs.loss if outputs.loss is not None else model.compute_loss(outputs, labels)
+        else:
+            # No labels are provided, cannot compute default loss
+            loss_default = 0
+
+        # Compute the loss from the neural network
+        with torch.no_grad():  # Assuming the neural loss model doesn't require gradient
+            loss_neural = self.neural_loss_model(logits, labels).mean()
+
+        # Combine the losses
+        combined_loss = (1 - self.loss_weight) * loss_default + self.loss_weight * loss_neural
+
+        return (combined_loss, outputs) if return_outputs else combined_loss

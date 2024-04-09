@@ -1,22 +1,12 @@
-'''
-This file is for comparing models and thier performances
-'''
+import torch
+from transformers import MobileBertForSequenceClassification
 
-from transformers import TensorFlowBenchmark, TensorFlowBenchmarkArguments
+# Assuming you have a GPU available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# put model names here
-test_model_names = []
+model = MobileBertForSequenceClassification.from_pretrained('google/mobilebert-uncased')
+model.to(device)
+model.eval()
 
-# put actual models here w.r.t. test_model_names
-test_models = []
-
-args = TensorFlowBenchmarkArguments(
-    models=test_model_names, 
-    batch_sizes=[8], 
-    sequence_lengths=[8, 32, 128, 512],
-    training=False,
-    inference=True,
-)
-
-benchmark = TensorFlowBenchmark(args, configs=test_models)
-benchmark.run()
+# Use torch.cuda.memory_allocated() to check memory usage on the GPU
+print(f"Memory allocated for the model: {torch.cuda.memory_allocated(device)/1024**2:.2f} MB")

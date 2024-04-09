@@ -8,8 +8,6 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers import BitsAndBytesConfig, GemmaTokenizer
 from dotenv import load_dotenv
 from preprocess_data import preprocess_file
-
-
 from datasets import Dataset, load_dataset
 
 
@@ -35,12 +33,13 @@ model = AutoModelForCausalLM.from_pretrained(
 
 # TEST MODEL WORKS
 def test_model_works():
-    prompt = "Caroline. I learned her name through the phonebook, my shaking fingers carefully caressing its pages as I searched for the address I'd seen her at so many times."
+    prompt = "Apple had been spending her time at the mansion with Marsh and Bow and Bow’s brother Dough. It had been very fun hanging out with them but it was almost December, Christmas time. Apple takes Christmas very seriously, she has to follow all the Christmas movie rules."
     device = "cuda"
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    trainer.model.eval()
     print(f"DEBUG inputs={inputs}")
 
-    outputs = model.generate(**inputs, max_new_tokens=20)
+    outputs = trainer.model.generate(**inputs, max_new_tokens=200)
     print(f"DEBUG outputs={outputs}")
 
     nice_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
