@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300&display=swap');
+
+/* Dark theme and full screen layout */
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Kanit', sans-serif;
+    background-color: #121212; /* Dark background for the whole page */
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden; /* Prevents double scrollbars */
+}
+
+.titleFlexContainer {
+    width: 100%;
+    padding: 10px 20px;
+    background: #222; /* Dark background for the header */
+    color: #fff;
+    font-size: 20px; /* Larger font size for the header title */
+    text-align: center; /* Centers the header title */
+    position: fixed; /* Keeps the header at the top */
+    top: 0;
+    left: 0;
+    z-index: 1000; /* Ensures the header is above other content */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+}
+
+.title {
+    font-size: 24px; /* Example size, adjust as needed */
+    font-weight: 700; /* Keep it bold */
+    color: #FFA500;
+  }
+
+/* Scrollbar styles for Webkit browsers like Chrome and Safari */
+.container::-webkit-scrollbar {
+    width: 12px; /* Width of the scrollbar */
+}
+
+.container::-webkit-scrollbar-track {
+    background: #2a2a2a; /* Dark theme track */
+}
+
+.container::-webkit-scrollbar-thumb {
+    background-color: #444; /* Dark theme thumb */
+    border-radius: 6px;
+    border: 3px solid #2a2a2a; /* Creates padding around the thumb */
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Slightly lighter thumb on hover */
+}
+
+/* Message area with columnar flow */
+.container {
+    flex-grow: 1;
+    padding: 60px 20px 20px; /* Adjust top padding to match header height */
+    overflow-y: auto;
+    margin-top: 40px; /* Additional space for the fixed header */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Aligns bot messages to the left */
+    scrollbar-width: thin; /* 'auto' or 'thin' */
+    scrollbar-color: #444 #2a2a2a; /* thumb and track color */
+}
+
+/* Individual message styling */
+.message {
+    font-weight: 300;
+    max-width: 80%; /* Limits message width */
+    word-wrap: break-word; /* Ensures text wraps to next line */
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: inline-block; /* Allows the message to only take up required width */
+}
+
+/* User message styling */
+.user-message {
+    background-color: #0052cc;
+    color: #fff;
+    align-self: flex-end; /* Aligns user messages to the right */
+    margin-left: auto; /* For older browsers */
+}
+
+/* Bot message styling */
+.bot-message {
+    background-color: #333; /* Slightly lighter background for bot messages */
+    color: #ddd;
+    align-self: flex-start; /* Ensures bot messages stay to the left */
+}
+
+/* Input area with fixed positioning */
+.input-area {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 20px;
+    background: #222; /* Slightly lighter background for the input area */
+    display: flex;
+    justify-content: center; /* Centers the input area contents */
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+/* Textarea and send button */
+textarea {
+    width: 90%; /* Increased width to 90% of the input area */
+    height: 50px; /* Fixed height */
+    background-color: #333;
+    color: #ddd;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #444;
+    overflow-y: auto; /* Makes the textarea scrollable */
+    resize: none; /* Disables resizing of the textarea */
+}
+
+input[type="submit"] {
+    padding: 10px 20px;
+    background-color: #556;
+    color: #eee;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    white-space: nowrap; /* Prevents text wrapping within the button */
+}
+
+/* Send button hover effect */
+input[type="submit"]:hover, input[type="submit"]:focus {
+    background-color: #778;
+}

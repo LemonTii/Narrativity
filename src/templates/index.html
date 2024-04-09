@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Narrativity: Your Storytelling Companion</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="titleFlexContainer">
+        <h1 class="title"> Narrativity </h1>
+    </div>
+    <div class="container" id="chat-container">
+        <!-- Dynamically append messages here -->
+        {% if session['messages'] %}
+            {% for message in session['messages'] %}
+                <div class="message {{ message['type'] }}">{{ message['text'] }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <div class="input-area">
+        <form action="/generate" method="post">
+            <textarea name="prompt" placeholder="Enter your story prompt..."></textarea>
+            <input type="submit" value="Send">
+        </form>
+    </div>
+
+    <script>
+        // Scroll to the bottom of the chat container to show the latest messages
+        var chatContainer = document.getElementById('chat-container');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    </script>
+</body>
+</html>
