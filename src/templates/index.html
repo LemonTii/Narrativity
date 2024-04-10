@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Narrativity: Your Storytelling Companion</title>
+    <title>Narrativity</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
     <div class="titleFlexContainer">
@@ -18,27 +19,94 @@
         {% endif %}
     </div>
     <div class="input-area">
-        <form id="story-form" action="/generate" method="post">
+        <form id="story-form">
             <textarea id="story-prompt" name="prompt" placeholder="Enter your story prompt..."></textarea>
-            <input type="submit" value="Send">
+            <div>
+                <input type="submit" id="submit-button" value="Send">
+                <div id="loading-indicator" style="display: none;"></div>
+            </div>
         </form>
     </div>
-
     <script>
         // Scroll to the bottom of the chat container to show the latest messages
         var chatContainer = document.getElementById('chat-container');
         chatContainer.scrollTop = chatContainer.scrollHeight;
         
-        document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('story-form').onsubmit = function() {
-            var textAreaValue = document.getElementById('story-prompt').value.trim();
-            if (!textAreaValue) {
-                // Prevent form from submitting if the textarea is empty
-                alert("Please enter some text before sending.");
-                return false;
-            }
-            return true;
-        };
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('story-form');
+        const submitButton = document.getElementById('submit-button');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const chatContainer = document.getElementById('chat-container');
+        const storyPrompt = document.getElementById('story-prompt');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the traditional form submission
+
+            const prompt = storyPrompt.value.trim();
+            if (!prompt) {
+                alert("Please enter some text before sending.");
+                return;
+            }
+
+            // Append user message immediately
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user-message';
+            userMessageDiv.textContent = prompt;
+            chatContainer.appendChild(userMessageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // Hide the submit button and show the loading indicator
+            submitButton.style.display = 'none';
+            loadingIndicator.style.display = 'block';
+
+            // Use fetch to submit prompt
+            fetch('/submit-prompt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ prompt: prompt }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('story-prompt').value = ''; // Clear textarea
+                console.log('Prompt submitted:', data);
+                // Fetch the generated response
+                return fetchGeneratedResponse();
+            })
+            .then(generatedResponse => {
+                // Append generated message
+                const generatedMessageDiv = document.createElement('div');
+                generatedMessageDiv.className = 'message bot-message';
+                generatedMessageDiv.textContent = generatedResponse.generatedResponse;
+                chatContainer.appendChild(generatedMessageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert("There was a problem with the request. Please try again.");
+            })
+            .finally(() => {
+                // Reset UI elements regardless of success or failure
+                submitButton.style.display = 'block';
+                loadingIndicator.style.display = 'none';
+            });
+        });
+
+        function fetchGeneratedResponse() {
+            return fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ prompt: storyPrompt.value.trim() }),
+            })
+            .then(response => response.json());
+        }
+    });
+        </script>
+
 </body>
 </html>

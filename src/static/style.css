@@ -9,7 +9,7 @@ html, body {
     background-color: #121212; /* Dark background for the whole page */
     color: #fff;
     display: flex;
-    /* flex-direction: column; */
+    flex-direction: column;
     height: 100%;
     overflow: hidden; /* Prevents double scrollbars */
 }
@@ -56,9 +56,10 @@ html, body {
 /* Message area with columnar flow */
 .container {
     flex-grow: 1;
-    padding: 60px 20px 20px; /* Adjust top padding to match header height */
+    padding: 70px 20px 70px; /* Adjust top padding to match header height */
     overflow-y: auto;
     margin-top: 40px; /* Additional space for the fixed header */
+    margin-bottom: 40px;
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* Aligns bot messages to the left */
@@ -94,13 +95,10 @@ html, body {
 
 /* Input area with fixed positioning */
 .input-area {
-    width: 98%;
+    width: 100%;
     padding: 20px 20px;
     background: #222; /* Slightly lighter background for the input area */
-    text-align: center;
-     /* Centers the input area contents */
-    align-items: center; /* Center-align vertically */
-    justify-content: space-between; /* Space out children */
+    text-align: center; /* Centers the input area contents */
     position: fixed;
     bottom: 0;
     left: 0;
@@ -108,10 +106,23 @@ html, body {
     z-index: 1000;
 }
 
+.input-area {
+    justify-content: center; /* Center children horizontally */
+    align-items: center; /* Center children vertically */
+    flex-wrap: wrap; /* Optional: allows items to wrap if not enough space */
+}
+
+.input-area form {
+    display: flex;
+    flex-direction: row; /* Stack form elements vertically */
+    align-items: center; /* Center form elements */
+    gap: 20px; /* Adds some space between the form elements */
+}
+
 /* Textarea and send button */
 textarea {
     float: left;
-    width: calc(100% - 120px); /* Increased width to 90% of the input area */
+    width: calc(100% - 170px);
     height: 50px; /* Fixed height */
     background-color: #333;
     color: #ddd;
@@ -120,7 +131,7 @@ textarea {
     border-radius: 5px;
     border: 1px solid #444;
     overflow-y: auto; /* Makes the textarea scrollable */
-    resize: none; /* Disables resizing of the textarea */
+    resize: none;
 }
 
 textarea::-webkit-scrollbar {
@@ -141,10 +152,11 @@ textarea::-webkit-scrollbar-thumb:hover {
     background: #555; /* Slightly lighter thumb on hover */
 }
 
-
 input[type="submit"] {
+    height: 50px;
+    width: 80px;
+    float: center;
     padding: 10px;
-    margin: 10px;
     background-color: #556;
     color: #eee;
     border: none;
@@ -152,10 +164,39 @@ input[type="submit"] {
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    white-space: nowrap; Prevents text wrapping within the button
+    white-space: nowrap;
 }
 
 /* Send button hover effect */
 input[type="submit"]:hover, input[type="submit"]:focus {
     background-color: #778;
+}
+
+#loading-indicator {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    position: relative;
+    padding: 10px;
+}
+
+#loading-indicator:after {
+    content: " ";
+    display: block;
+    width: 32px;
+    height: 32px;
+    margin: 4px;
+    border-radius: 50%;
+    border: 4px solid #0052cc; /* Adjust the color to fit the dark theme */
+    border-color: #0052cc transparent #0052cc transparent; /* Dual-ring */
+    animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }

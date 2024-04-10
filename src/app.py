@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 from training.generate_gemma import GemmaStoryModel
 import os
-# from training.customize import StoryGenerator
 from flask_session import Session
 
 app = Flask(__name__)
@@ -20,18 +19,37 @@ def home():
         session['messages'] = []
     return render_template('index.html')
 
+@app.route('/submit-prompt', methods=['POST'])
+def submit_prompt():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data received'}), 400
+    prompt = data.get('prompt')
+    if not prompt:
+        return jsonify({'error': 'No prompt received'}), 400
+    
+    # Process your prompt here...
+    print("Received prompt:", prompt)
+    prompt = request.json.get('prompt')
+    session['prompt'] = prompt
+    session['messages'].append({'text': prompt, 'type': 'user-message'})
+
+    return jsonify({'message': 'Prompt received', 'prompt': prompt})
+
 @app.route('/generate', methods=['POST'])
 def generate_text():
-    prompt = request.form['prompt']
-    session['messages'].append({'text': prompt, 'type': 'user-message'})
-    session.modified = True
-    redirect(url_for('home'))
-    generated_response = generator.generate_story(prompt, max_length)
-    session['messages'].append({'text': generated_response, 'type': 'bot-message'})
-    session.modified = True
-    
-    return redirect(url_for('home'))
 
+    prompt = session.get('prompt', '')
+    generated_response = generator.generate_story(prompt, max_length)
+
+    print("generated_response: ", generated_response)
+    session['messages'].append({'text': generated_response, 'type': 'bot-message'})
+
+    return jsonify({'generatedResponse': generated_response})
+
+@app.route('/latest-messages', methods=['GET'])
+def latest_messages():
+    return jsonify(messages=session.get('messages', []))
 
 if __name__ == '__main__':
     app.run(debug=True)
