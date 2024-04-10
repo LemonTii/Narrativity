@@ -28,7 +28,6 @@ def submit_prompt():
     if not prompt:
         return jsonify({'error': 'No prompt received'}), 400
     
-    # Process your prompt here...
     print("Received prompt:", prompt)
     prompt = request.json.get('prompt')
     session['prompt'] = prompt
@@ -52,4 +51,4 @@ def latest_messages():
     return jsonify(messages=session.get('messages', []))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

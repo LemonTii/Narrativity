@@ -41,7 +41,6 @@ class StoriesDataset(Dataset):
 
 def tokenize_texts(texts, tokenizer):
     tokenized_stories = tokenizer(texts, padding=True, return_tensors="pt")
-    # print(tokenized_stories['input_ids'].shape)
     return tokenized_stories
 
 def load_dataset(stories_file, labels_file, tokenizer):
@@ -61,15 +60,15 @@ def load_dataset(stories_file, labels_file, tokenizer):
 
 def split_dataset(tokenized_stories, labels, test_size=0.2, random_state=42):
     input_ids_train, input_ids_val, labels_train, labels_val = train_test_split(
-        tokenized_stories['input_ids'],  # Assuming this is a tensor
-        labels,  # Assuming this is a tensor or numpy array
-        test_size=test_size,  # 20% for validation
+        tokenized_stories['input_ids'], 
+        labels,
+        test_size=test_size,
         random_state=random_state
     )
     attention_mask_train, attention_mask_val, _, _ = train_test_split(
-        tokenized_stories['attention_mask'],  # Assuming this is a tensor
-        labels,  # This is just to keep the function signature; we won't use the split labels again.
-        test_size=test_size,  # 20% for validation
+        tokenized_stories['attention_mask'], 
+        labels,
+        test_size=test_size,
         random_state=random_state
     )
     train_dataset = StoriesDataset(input_ids_train, attention_mask_train, labels_train)
@@ -77,35 +76,28 @@ def split_dataset(tokenized_stories, labels, test_size=0.2, random_state=42):
     return train_dataset, val_dataset
 
 def main():
-    # Initialize tokenizer with your specific settings
     load_dotenv()
     os.environ["HF_TOKEN"] = os.getenv('TOKEN')
     tokenizer = AutoTokenizer.from_pretrained("google/gemma-2b", use_auth_token=os.environ['HF_TOKEN'])
     tokenizer.padding_side = 'right'
     criterion = nn.MSELoss()
     
-    # Paths
     stories_path = os.path.join("data", "loss_net", "cleaned_stories.csv")
     labels_path = os.path.join("data", "loss_net", "cleaned_kudos.csv")
     model_save_path = os.path.join("..", "models", 'loss_net.pth')
 
-    # Load dataset
     stories, labels = load_dataset(stories_path, labels_path, tokenizer)
-    
-    # Split dataset
+
     train_dataset, val_dataset = split_dataset(stories, labels)
-    
-    # Prepare DataLoaders
+
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
-    
-    # Model initialization
+
     model = StoryRatingModel(embedding_dim=len(tokenizer.vocab.keys()), projection_dim=512, hidden_dim=256, output_dim=1).to('cuda')
     optimizer = AdamW(model.parameters(), lr=3e-5)
-    
-    # Training loop
+
     best_val_loss = float('inf')
-    for epoch in range(1, 100):  # Adjust epochs as needed
+    for epoch in range(1, 100):
         model.train()
         loop = tqdm(train_loader, leave=True)
         for batch in loop:
@@ -122,9 +114,6 @@ def main():
             
             loop.set_description(f'Epoch {epoch}')
             loop.set_postfix(loss=loss.item())
-        
-        # Validation phase, potentially adjust to validate_and_save_model function for clarity
-        # ...
         
 if __name__ == '__main__':
     main()

@@ -1,6 +1,6 @@
 import torch
 from transformers import GPT2LMHeadModel, GPT2Tokenizer, AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-from customize import StoryGenerator  # Assuming this imports your custom class
+from customize import StoryGenerator
 import os
 
 prompt = "Caroline. I learned her name through the phonebook, my shaking fingers carefully caressing its pages as I searched for the address I'd seen her at so many times."
@@ -32,15 +32,13 @@ encoded_input = tokenizer(prompt, return_tensors='pt', padding=True, truncation=
 input_ids = encoded_input['input_ids'].to(device)
 attention_mask = encoded_input['attention_mask'].to(device)
 
-# Generating text
-# Assuming you need to call the generate method on the underlying transformer model
 output_sequences = model.transformer.generate(
     input_ids=input_ids,
-    attention_mask=attention_mask,  # Pass the attention mask
+    attention_mask=attention_mask, 
     max_length=max_length,
-    pad_token_id=tokenizer.eos_token_id,  # Explicitly set pad_token_id if necessary
+    pad_token_id=tokenizer.eos_token_id,
     do_sample=True,
-    temperature=0.7,  # Adjust based on your needs
+    temperature=0.7,
     top_k=50,
     top_p=0.95,
     repetition_penalty=1.2,

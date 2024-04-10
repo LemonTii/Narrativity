@@ -18,7 +18,6 @@ def split_story(story, ratio=0.25):
     sentences = sent_tokenize(story)
     split_index = int(len(sentences) * ratio)
     
-    # Ensure at least one sentence is in the input part and one in the target part
     split_index = max(1, min(len(sentences) - 1, split_index))
     
     input_text = ' '.join(sentences[:split_index]).strip()
@@ -33,7 +32,7 @@ def preprocess_file(file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
             for line in file:
                 cleaned_story = clean_text(line)
-                if cleaned_story:  # If the story is not empty
+                if cleaned_story: 
                     input_text, target_text = split_story(cleaned_story)
                     data.append({'input': input_text, 'target': target_text})
     except Exception as e:
@@ -42,7 +41,6 @@ def preprocess_file(file_path):
     return data
 
 def main():
-    # Example usage
     data_path = os.path.join("data", "stories3", "data.txt")
     preprocessed_stories = preprocess_file(data_path)
     if preprocessed_stories:

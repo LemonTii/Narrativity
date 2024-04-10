@@ -44,7 +44,7 @@ def validate(model, dataloader, device):
             input_ids = input_ids.long()
             attn_masks = attn_masks.long()
             labels = labels.long()
-            with autocast():  # Enable mixed precision for the validation step
+            with autocast(): 
                 outputs = model(input_ids, attention_mask=attn_masks, labels=labels)
                 loss = outputs.loss
             total_loss += loss.item()
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     # val_data_path = os.path.join("data", "stories", "validation.csv")
 
     save_path = os.path.join("..", "models")
-    os.makedirs(save_path, exist_ok=True)  # Ensure save directory exists
+    os.makedirs(save_path, exist_ok=True)
 
     data_path = os.path.join("data", "stories3", "data.txt")
     stories = preprocess_file(data_path)
@@ -131,17 +131,14 @@ if __name__ == "__main__":
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=4, collate_fn=custom_collate)
         val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=4, collate_fn=custom_collate)
 
-        # Reset model and optimizer for each fold
         model = StoryGenerator(GPT2LMHeadModel.from_pretrained('gpt2')).to(device)
         # model = StoryGenerator(AutoModelForCausalLM.from_pretrained('gpt2',
         #                                                             quantization_config=bnb_config,
         #                                                             device_map={"":0})).to(device)
         optimizer = optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
         
-        # Your existing training and validation loop here
         for e in range(epoch):
             print(f'fold: {fold+1}, epoch: {e+1}')
-            # Train and validate the model
             train_loss = train(model, train_dataloader, optimizer, device)
             val_loss = validate(model, val_dataloader, device)
             print(f'Fold {fold+1}, Epoch {e+1}, Training Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}')

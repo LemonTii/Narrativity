@@ -13,14 +13,14 @@ def clean_text(text):
 def process_line(line, in_story, story_lines):
     if line.startswith('"') and not in_story:
         in_story = True
-        story_lines.append(line[1:].strip())  # Start collecting story lines, removing the leading quote
+        story_lines.append(line[1:].strip())
     elif line.endswith('"\n') and in_story:
-        story_lines.append(line[:-2].strip())  # End of story, removing the trailing quote and newline
+        story_lines.append(line[:-2].strip())
         full_story = " ".join(story_lines)
         full_story_cleaned = clean_text(full_story)
         
         # Find the split point that does not cut off mid-word
-        split_point = len(full_story_cleaned) // 4  # Initial split point (1/4th of the story length)
+        split_point = len(full_story_cleaned) // 4
         # Adjust the split point to the nearest space to avoid splitting words
         while split_point < len(full_story_cleaned) and full_story_cleaned[split_point] not in [' ', '\n']:
             split_point += 1
@@ -29,11 +29,11 @@ def process_line(line, in_story, story_lines):
             'input': full_story_cleaned[:split_point].strip(),
             'target': full_story_cleaned[split_point:].strip()
         }
-        story_lines = []  # Reset for the next story
+        story_lines = []
         in_story = False
         return story, in_story, story_lines
     elif in_story:
-        story_lines.append(line.strip())  # Collect lines that are part of a story
+        story_lines.append(line.strip())
     return None, in_story, story_lines
 
 def process_chunk(file_path, start, end):
@@ -41,7 +41,7 @@ def process_chunk(file_path, start, end):
     with open(file_path, 'r', encoding='utf-8') as file:
         if start != 0:
             file.seek(start)
-            file.readline()  # Skip partial line
+            file.readline()
         in_story = False
         story_lines = []
         while file.tell() < end:
@@ -58,7 +58,7 @@ def chunkify(file_path, size=1024*1024*50):
         while True:
             start = file.tell()
             file.seek(size, 1)
-            file.readline()  # Move to the end of the current line
+            file.readline()
             end = file.tell()
             if end >= file_size:
                 chunk_ends.append(file_size)

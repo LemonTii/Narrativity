@@ -17,10 +17,6 @@ def compute_metrics(eval_pred):
     print(eval_pred)
     print(logits.shape)
     print(labels.shape)
-    # Compute your metrics here. This example will focus on loss, 
-    # but you should replace this with metrics relevant to your task.
-    # For example, accuracy for classification. 
-    # You might need to compute metrics manually depending on your output format.
     return {"loss": logits.loss.mean().item(), 'logits': logits.shape, 'labels': labels.shape}
 
 def formatting_func(example):
@@ -30,9 +26,6 @@ def formatting_func(example):
 if __name__ == "__main__":
     load_dotenv()
     os.environ["HF_TOKEN"] = os.getenv('TOKEN')
-
-    # ----
-    # LOAD LLM
     model_id = "google/gemma-2b"
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,

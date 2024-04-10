@@ -9,6 +9,7 @@ class GemmaStoryModel():
         load_dotenv()
         os.environ["HF_TOKEN"] = os.getenv('TOKEN')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        print(self.device)
         self.model_id = "google/gemma-2b"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, token=os.environ['HF_TOKEN'])
         self.tokenizer.padding_side = 'right'
@@ -26,7 +27,7 @@ class GemmaStoryModel():
 
 def main():
     prompt = "Erwin could feel Neitsh's anger from the next tent over. The cleric had disappeared into it after barely eating anything, claiming to be tired."
-    model_path = os.path.join('..', 'models', 'fold_2_epoch_100_gemma.pth')
+    model_path = os.path.join('models', 'fold_2_epoch_100_gemma.pth')
     generator = GemmaStoryModel(model_path)
     print(generator.generate_story(prompt))
 

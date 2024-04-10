@@ -14,8 +14,6 @@ from datasets import Dataset, load_dataset
 load_dotenv()
 os.environ["HF_TOKEN"] = os.getenv('TOKEN')
 
-# ----
-# LOAD LLM
 model_id = "google/gemma-2b"
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
@@ -27,7 +25,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_id, token=os.environ['HF_TOKEN']
 model = AutoModelForCausalLM.from_pretrained(
     model_id,
     quantization_config=bnb_config,
-    device_map={"":0}, # TODO: josh peepoo sok was here :P
+    device_map={"":0},
     token=os.environ['HF_TOKEN']
 )
 

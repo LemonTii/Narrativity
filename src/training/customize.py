@@ -18,7 +18,7 @@ def custom_collate(batch):
     # Pad sequences so they are all the same length as the longest sequence
     input_ids_padded = pad_sequence(input_ids, batch_first=True, padding_value=0)
     attn_masks_padded = pad_sequence(attn_masks, batch_first=True, padding_value=0)
-    labels_padded = pad_sequence(labels, batch_first=True, padding_value=-100)  # Assuming -100 is ignored by your loss function
+    labels_padded = pad_sequence(labels, batch_first=True, padding_value=-100) 
 
     return input_ids_padded, attn_masks_padded, labels_padded
 
@@ -29,7 +29,6 @@ class CustomLoss(nn.Module):
         self.weight = weight
 
     def forward(self, outputs, labels):
-        # Custom loss computation
         loss = torch.mean((outputs - labels) ** 2) * self.weight
         return loss
     
@@ -46,7 +45,7 @@ class StoryDataset(Dataset):
         story = self.stories[idx]
         input_encodings = self.tokenizer(story['input'], truncation=True, max_length=self.max_length, padding="max_length", return_tensors="pt")
         target_encodings = self.tokenizer(story['target'], truncation=True, max_length=self.max_length, padding="max_length", return_tensors="pt")
-        input_ids = input_encodings['input_ids'].squeeze()  # Remove batch dimension
+        input_ids = input_encodings['input_ids'].squeeze()
         attn_masks = input_encodings['attention_mask'].squeeze()
         labels = target_encodings['input_ids'].squeeze()
         return input_ids, attn_masks, labels
@@ -66,23 +65,21 @@ class MyCustomSFTTrainer(SFTTrainer):
     def __init__(self, *args, neural_loss_model=None, loss_weight=0.5, **kwargs):
         super().__init__(*args, **kwargs)
         self.neural_loss_model = neural_loss_model
-        self.loss_weight = loss_weight  # Weight for the neural network-based loss
+        self.loss_weight = loss_weight
         
     def compute_loss(self, model, inputs, return_outputs=False):
         outputs = model(**inputs)
-        logits = outputs.logits  # Adjust based on your model outputs
+        logits = outputs.logits
 
         # Compute the default model loss
         if "labels" in inputs:
             labels = inputs["labels"]
-            # Use model's built-in loss
             loss_default = outputs.loss if outputs.loss is not None else model.compute_loss(outputs, labels)
         else:
-            # No labels are provided, cannot compute default loss
             loss_default = 0
 
         # Compute the loss from the neural network
-        with torch.no_grad():  # Assuming the neural loss model doesn't require gradient
+        with torch.no_grad():
             loss_neural = self.neural_loss_model(logits, labels).mean()
 
         # Combine the losses
