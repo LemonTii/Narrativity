@@ -1,48 +1,34 @@
 import os
-import transformers
 import torch
-from datasets import load_dataset
-from trl import SFTTrainer
-from peft import LoraConfig, PeftModel
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from transformers import BitsAndBytesConfig, GemmaTokenizer
 from dotenv import load_dotenv
-from preprocess_data import preprocess_file
-from datasets import Dataset, load_dataset
 
-torch.cuda.empty_cache()
+class GemmaStoryModel():
+    def __init__(self, model_path):
+        torch.cuda.empty_cache()
+        load_dotenv()
+        os.environ["HF_TOKEN"] = os.getenv('TOKEN')
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model_id = "google/gemma-2b"
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, token=os.environ['HF_TOKEN'])
+        self.tokenizer.padding_side = 'right'
+        self.model = AutoModelForCausalLM.from_pretrained(model_path).to(self.device)
 
-load_dotenv()
-os.environ["HF_TOKEN"] = os.getenv('TOKEN')
+    def tokenize_text_for_gemma(self, text):
+        return self.tokenizer(text, return_tensors="pt").to(self.device)
+    
+    def generate_story(self, input, max_response_length=200):
+        print('generating...')
+        text = self.tokenize_text_for_gemma(input)
+        response = self.model.generate(**text, max_new_tokens=max_response_length)
+        print('generated!')
+        return self.tokenizer.decode(response[0], skip_special_tokens=True)
 
-prompt = "Caroline. I learned her name through the phonebook, my shaking fingers carefully caressing its pages as I searched for the address I'd seen her at so many times."
-model_path = os.path.join('..', 'models', 'fold_1_epoch_100_gemma.pth')
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# ----
-# LOAD LLM
-model_id = "google/gemma-2b"
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.bfloat16
-)
+def main():
+    prompt = "Erwin could feel Neitsh's anger from the next tent over. The cleric had disappeared into it after barely eating anything, claiming to be tired."
+    model_path = os.path.join('..', 'models', 'fold_2_epoch_100_gemma.pth')
+    generator = GemmaStoryModel(model_path)
+    print(generator.generate_story(prompt))
 
-tokenizer = AutoTokenizer.from_pretrained(model_id, token=os.environ['HF_TOKEN'])
-# model = AutoModelForCausalLM.from_pretrained(
-#     model_id,
-#     quantization_config=bnb_config,
-#     device_map={"":0},
-#     token=os.environ['HF_TOKEN']
-# )
-
-model = AutoModelForCausalLM.from_pretrained(model_path).to(device)
-tokenizer.padding_side = 'right'
-
-# load_model = PeftModel.from_pretrained(model, model_path)
-# load_model = load_model.merge_and_unload()
-
-inputs = tokenizer(prompt, return_tensors="pt").to(device)
-outputs = model.generate(**inputs, max_new_tokens=200)
-nice_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
-print(nice_output)
-
+if __name__=='__main__':
+    main()

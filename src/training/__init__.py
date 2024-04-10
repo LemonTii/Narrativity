@@ -1,1 +1,1 @@
-from training.customize import StoryGenerator
+from training.generate_gemma import GemmaStoryModel
