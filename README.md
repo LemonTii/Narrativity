@@ -43,7 +43,7 @@ Follow these steps to get Narrativity up and running on your system:
     ```
     install all necessary Python packages with pip:
     ```sh
-    pip install requirements.txt
+    pip install -r requirements.txt
     ```
 ## Running Narrativity
 ```sh
