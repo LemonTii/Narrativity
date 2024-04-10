@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template, session, redirect, u
 import torch
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 import os
-from training.customize import StoryGenerator
+# from training.customize import StoryGenerator
 from flask_session import Session
 
 app = Flask(__name__)

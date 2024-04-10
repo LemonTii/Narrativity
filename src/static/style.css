@@ -9,7 +9,7 @@ html, body {
     background-color: #121212; /* Dark background for the whole page */
     color: #fff;
     display: flex;
-    flex-direction: column;
+    /* flex-direction: column; */
     height: 100%;
     overflow: hidden; /* Prevents double scrollbars */
 }
@@ -31,7 +31,7 @@ html, body {
 .title {
     font-size: 24px; /* Example size, adjust as needed */
     font-weight: 700; /* Keep it bold */
-    color: #FFA500;
+    color: #fff;
   }
 
 /* Scrollbar styles for Webkit browsers like Chrome and Safari */
@@ -94,22 +94,24 @@ html, body {
 
 /* Input area with fixed positioning */
 .input-area {
+    width: 98%;
+    padding: 20px 20px;
+    background: #222; /* Slightly lighter background for the input area */
+    text-align: center;
+     /* Centers the input area contents */
+    align-items: center; /* Center-align vertically */
+    justify-content: space-between; /* Space out children */
     position: fixed;
     bottom: 0;
     left: 0;
-    right: 0;
-    width: 100%;
-    padding: 20px;
-    background: #222; /* Slightly lighter background for the input area */
-    display: flex;
-    justify-content: center; /* Centers the input area contents */
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.5);
     z-index: 1000;
 }
 
 /* Textarea and send button */
 textarea {
-    width: 90%; /* Increased width to 90% of the input area */
+    float: left;
+    width: calc(100% - 120px); /* Increased width to 90% of the input area */
     height: 50px; /* Fixed height */
     background-color: #333;
     color: #ddd;
@@ -121,8 +123,28 @@ textarea {
     resize: none; /* Disables resizing of the textarea */
 }
 
+textarea::-webkit-scrollbar {
+    width: 12px; /* Width of the scrollbar */
+}
+
+textarea::-webkit-scrollbar-track {
+    background: #2a2a2a; /* Dark theme track */
+}
+
+textarea::-webkit-scrollbar-thumb {
+    background-color: #444; /* Dark theme thumb */
+    border-radius: 6px;
+    border: 3px solid #2a2a2a; /* Creates padding around the thumb */
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Slightly lighter thumb on hover */
+}
+
+
 input[type="submit"] {
-    padding: 10px 20px;
+    padding: 10px;
+    margin: 10px;
     background-color: #556;
     color: #eee;
     border: none;
@@ -130,7 +152,7 @@ input[type="submit"] {
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    white-space: nowrap; /* Prevents text wrapping within the button */
+    white-space: nowrap; Prevents text wrapping within the button
 }
 
 /* Send button hover effect */

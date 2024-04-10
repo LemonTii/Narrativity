@@ -18,8 +18,8 @@
         {% endif %}
     </div>
     <div class="input-area">
-        <form action="/generate" method="post">
-            <textarea name="prompt" placeholder="Enter your story prompt..."></textarea>
+        <form id="story-form" action="/generate" method="post">
+            <textarea id="story-prompt" name="prompt" placeholder="Enter your story prompt..."></textarea>
             <input type="submit" value="Send">
         </form>
     </div>
@@ -28,6 +28,17 @@
         // Scroll to the bottom of the chat container to show the latest messages
         var chatContainer = document.getElementById('chat-container');
         chatContainer.scrollTop = chatContainer.scrollHeight;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('story-form').onsubmit = function() {
+            var textAreaValue = document.getElementById('story-prompt').value.trim();
+            if (!textAreaValue) {
+                // Prevent form from submitting if the textarea is empty
+                alert("Please enter some text before sending.");
+                return false;
+            }
+            return true;
+        };
     </script>
 </body>
 </html>
